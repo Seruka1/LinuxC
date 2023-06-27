@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "numeric": "cpp",
+        "unistd.h": "c",
+        "stat.h": "c"
+    }
+}
