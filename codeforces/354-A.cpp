@@ -19,7 +19,7 @@ public:
             sufSum[i]=sufSum[i+1]+q[i-1];
         }
 
-        int ans=INT_MAX;
+        int ans=r*sufSum[n]+qr*(n-1);
         for(int i=1;i<=n;++i)
         {
             if(i<n-i)
