@@ -53,6 +53,7 @@ int main(int argc,char** argv)
             if(ret<0)
             {
                 printf("%s\n",strerror(errno));
+                //注意这里直接退出会发生内存泄漏
                 exit(1);
             }
             pos+=ret;
