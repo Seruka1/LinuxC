@@ -2,6 +2,7 @@
     "files.associations": {
         "numeric": "cpp",
         "unistd.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "types.h": "c"
     }
 }
