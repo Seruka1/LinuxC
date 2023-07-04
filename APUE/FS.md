@@ -76,7 +76,25 @@ st_mode（rwxr--r--）总共16位，用于表示文件类型、文件访问权�
 - fchdir
 
 ### 11. 分析目录/读取目录内容
+**单独调用**
+- glob解析模式/通配符（*）
+
+**组合调用**
+- opendir()
+- closedir()
+- readdir()
+- seekdir()
+- telldir()
 
 ## 二、系统数据文件和信息
-
+1. /etc/passwd
+   - getpwuid();
+   - getpwnam();
+2. /etc/group
+   - getgrgid();
+   - getgrgrnam();
+3. /etc/shadow
+   - getspnam();
+   - crypt();
+   - getpass();
 ## 三、进程环境
