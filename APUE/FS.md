@@ -97,4 +97,65 @@ st_mode（rwxr--r--）总共16位，用于表示文件类型、文件访问权�
    - getspnam();
    - crypt();
    - getpass();
+   - 密码加盐
+
+4. 时间戳  
+**time_t=>struct_tm=>char***  
+- time() 从kernel中取出时间戳(以秒为单位)
+- gntime() 将时间戳转换为struct_tm 格林威治时间
+- localtime() 将时间戳转换为struct_tm 本地时间
+- mktime() jaing struct_tm结构体转换为时间戳，还可以检查是否溢出
+- strftime(); 格式化时间字符串
+  ```
+  time_t stamp;
+  time(&stamp);
+  stamp = time(NULL);
+  tm = localtime(&stamp);
+  strftime(buf,BUFSIZE,"%Y-%m-%d",tm);
+  puts(buf);
+  ```
+- tail -f 循环读取文件
 ## 三、进程环境
+1. main函数
+- `int main(int argc,char** argv)`
+2. 进程的终止：
+- 正常终止：
+  - 从main函数返回
+  - 调用`exit`
+  - 调用`_exit`或者`_Exit`，**调用_exit/_Exit直接返回内核  不执行钩子函数以及清理缓冲区**
+  - 最后一个线程从其启动例程返回
+  - 最后一个线程调用`pthread_exit`
+- 异常终止：
+  - 调用abort
+  - 接到一个信号并终止
+  - 最后一个线程对其取消请求作出响应
+- 钩子函数`atexit()`  
+  当执行exit时，逆序调用注册的钩子函数。
+3. 命令行参数的分析
+- `getopt()`
+- `getopt_long()`
+4. 环境变量  
+**KEY==VALUE**
+    - Linux export命令查看环境变量
+    - `getenv()`
+    - `setenv()`
+    - `putenv()`
+5. C程序的存储空间布局  
+  `pmap(1)`
+6. 库
+- 动态库
+- 静态库
+- 手工装载库
+  - `dlopen`
+  - `dlclose`
+  - `dlerror`
+  - `dlsym`
+7. 函数跳转
+```
+适用场景： 在树结构中查找元素，找到后直接回到第一次调用处(跨函数),不用一层一层返回
+```
+- `setjmp`
+- `longjmp`
+8. 资源的获取与控制
+- getrlimit
+- setrlimit
