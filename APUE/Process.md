@@ -6,7 +6,8 @@
 - ps axm
 - ps ax -L
 - ps -ef  
-- ps axj 看守护进程  
+- ps axj 看守护进程
+
 **进程号是顺次向下使用的，与文件描述符ID有所区别**  
 - `getpid()`
 - `getppid()`
