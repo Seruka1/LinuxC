@@ -107,7 +107,7 @@ st_mode（rwxr--r--）总共16位，用于表示文件类型、文件访问权�
 4. 时间戳
    **time_t=>struct_tm=>char***
 
-- time() 从kernel中取出时间戳(以秒为单位)
+- time() 从kernel中取出时间戳(以秒为单位)，存储从1970年到现在经过了多少秒
 - gntime() 将时间戳转换为struct_tm 格林威治时间
 - localtime() 将时间戳转换为struct_tm 本地时间
 - mktime() jaing struct_tm结构体转换为时间戳，还可以检查是否溢出
