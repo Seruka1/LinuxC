@@ -7,18 +7,17 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/time.h>
 
-// 令牌桶
+// 漏桶
 #define SIZE 10
-#define BUCKETS 100
 
-static int token = 0;
+static int loop = 0;
 
 static void alrm_handler(int s)
 {
-    alarm(1);
-    if (token <= BUCKETS)
-        ++token;
+   // alarm(1);
+    loop = 1;
 }
 
 int main(int argc, char **argv)
@@ -36,19 +35,28 @@ int main(int argc, char **argv)
     }
     int dfd = 1;
 
-    signal(SIGALRM, alrm_handler);
-    alarm(1);
+    struct itimerval itv;
+    itv.it_interval.tv_sec = 1;
+    itv.it_interval.tv_usec = 0;
+    itv.it_value.tv_sec = 1;
+    itv.it_value.tv_usec = 0;
 
+    signal(SIGALRM, alrm_handler);
+    //alarm(1);
+    if(setitimer(ITIMER_REAL,&itv,NULL)<0)
+    {
+        perror("setitimer()");
+        exit(1);
+    }
     char buf[SIZE];
 
     while (1)
     {
-        //注意下面这条操作不是原子操作会影响实际token值
-        while (token <= 0)
+        while (loop == 0)
         {
             pause();
         }
-        --token;
+        loop = 0;
         int len = 0;
         int pos = 0;
         int ret = 0;

@@ -25,10 +25,14 @@
 - `kill()`
 - `raise()`，给自己发信号
 - `alarm()`,alarm会覆盖先前的alarm，信号默认杀死进程，**sleep与alarm不能混用**
+  - 使用单一计时器，构造一组函数，实现任意数量的计时器
+- `setitimer()`提供更精细的计时
 - `pause()`
 - `abort()`
 - `system()`
-- `sleep()`
+- `sleep()`,ubuntu中等于nanosleep
+- `usleep()`
+- `select()`
 ### 7. 信号集
 ### 8. 信号屏蔽字/pengding集的处理
 ### 9. 扩展
