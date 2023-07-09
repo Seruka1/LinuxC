@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+// 实时信号，有顺序不丢失
+#define MYRTSIG (SIGRTMIN + 6)
+
+void myrt_handler(int s)
+{
+    write(1, "!", 1);
+}
+
+int main()
+{
+    // signal(SIGINT,SIG_IGN);
+    sigset_t set, oldset, saveset;
+
+    // 信号会打断阻塞的系统调用
+    signal(MYRTSIG, myrt_handler);
+
+    sigemptyset(&set);
+    sigaddset(&set, MYRTSIG);
+    sigprocmask(SIG_UNBLOCK, &set, &saveset);
+    sigprocmask(SIG_BLOCK, &set, &oldset);
+    for (int j = 0; j < 1000; ++j)
+    {
+
+        for (int i = 0; i < 5; ++i)
+        {
+            write(1, "*", 1);
+            sleep(1);
+        }
+        write(1, "\n", 1);
+        sigsuspend(&oldset);
+    }
+    sigprocmask(SIG_SETMASK, &saveset, NULL);
+    exit(0);
+}
