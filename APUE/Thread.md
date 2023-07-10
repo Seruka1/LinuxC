@@ -36,6 +36,15 @@
 **detach后再join会报错**
  
 ## 3. 线程同步
+### 互斥量
+**锁住的是一段代码而不是一个变量**
+- 动态初始化：`pthread_mutex_init()`  
+  静态初始化：`pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER`
+- `pthread_mutex_destroy()`
+- `pthread_mutex_lock()`,阻塞
+- `pthread_mutex_trylock()`，非阻塞
+- `pthread_mutex_unlock()`
+- 临界区内跳转到临界区外一定要注意解锁
 ## 4. 线程属性
 - 线程同步的属性
 ## 5. 重入
