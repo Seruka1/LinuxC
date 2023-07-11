@@ -44,6 +44,7 @@
 - `pthread_mutex_lock()`,阻塞
 - `pthread_mutex_trylock()`，非阻塞
 - `pthread_mutex_unlock()`
+- `pthread_once()`
 - 临界区内跳转到临界区外一定要注意解锁
 ## 4. 线程属性
 - 线程同步的属性
