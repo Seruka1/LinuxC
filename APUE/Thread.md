@@ -58,8 +58,37 @@
 ### 信号量
 **通过互斥量与条件变量的配合我们可以实现信号量。信号量像是一个激活函数，当这个变量超过阈值时，将会触发条件变量给互斥量上锁**
 - **互斥量可以看作二进制信号量** 
+- 哲学家问题 
+### 读写锁
+- 读锁->共享锁，写锁->互斥锁
+- 读者写者问题
 ## 4. 线程属性
-- 线程同步的属性
-## 5. 重入
+- pthread_attr_init()
+- pthread_attr_destory()
+- pthread_attr_setstacksize() 其他请见 man pthread_attr_init 的 see also
+### 线程同步的属性
+#### 互斥量属性
+- pthread_mutexattr_init()
+- pthread_mutexattr_destory()
+- clone 进程 线程 不分家，**有些问题用子进程解决不太好，用线程解决也不太好**
+  - 跨进程设置锁
+  - pthread_mutexattr_getshared()
+  - pthread_mutexattr_setshared()
+- pthread_mutexattr_gettype()，互斥量有四种类型
+- pthread_mutexattr_settype()
+#### 条件变量的属性
+- pthread_condattr_init()
+- pthread_condattr_destory()
+#### 读写锁的属性
+## 5. 重入（reentry）
+**多线程IO**都支持线程安全（给缓冲区上锁），如果你就是要调用单进程单线程，那么可以用unlock版本
+- getchar_unlocked
 ## 6. 线程与信号
+**多线程每个线程都有一个mask与pending，而进程只有一个pending**
+- pthread_sigmask()
+- sigwait()
+- pthread_kill()
 - 线程与fork
+
+## openmp（另一套线程标准） -->www.OpenMp.org
+
