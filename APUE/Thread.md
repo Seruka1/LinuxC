@@ -46,6 +46,10 @@
 - `pthread_mutex_unlock()`
 - `pthread_once()`
 - 临界区内跳转到临界区外一定要注意解锁
+### 条件变量
+- `pthread_cond_t`
+- `pthread_cond_init()`
+- `pthread_cond_destroy()`
 ## 4. 线程属性
 - 线程同步的属性
 ## 5. 重入
