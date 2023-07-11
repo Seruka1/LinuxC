@@ -50,6 +50,10 @@
 - `pthread_cond_t`
 - `pthread_cond_init()`
 - `pthread_cond_destroy()`
+- `pthread_cond_broadcast()`
+- `pthread_cond_signal()`
+- `pthread_cond_wait()`
+- `pthread_cond_timewait()`
 ## 4. 线程属性
 - 线程同步的属性
 ## 5. 重入
