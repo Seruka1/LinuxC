@@ -47,6 +47,7 @@
 - `pthread_once()`
 - 临界区内跳转到临界区外一定要注意解锁
 ### 条件变量
+**条件变量是配合锁来使用的，锁上发现不满足条件那么就wait，等待状态变化**
 - `pthread_cond_t`
 - `pthread_cond_init()`
 - `pthread_cond_destroy()`
