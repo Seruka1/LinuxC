@@ -44,17 +44,20 @@
 - `pthread_mutex_lock()`,阻塞
 - `pthread_mutex_trylock()`，非阻塞
 - `pthread_mutex_unlock()`
-- `pthread_once()`
+- `pthread_once()`，**动态模块的单词初始化函数**
 - 临界区内跳转到临界区外一定要注意解锁
 ### 条件变量
-**条件变量是配合锁来使用的，锁上发现不满足条件那么就wait，等待状态变化**
+**条件变量是配合锁来使用的，锁上发现不满足条件那么就wait，等待状态变化。条件变量可以解决互斥量进行盲等的问题，即实现了通知法，通知互斥量什么时候上锁**
 - `pthread_cond_t`
 - `pthread_cond_init()`
 - `pthread_cond_destroy()`
-- `pthread_cond_broadcast()`
-- `pthread_cond_signal()`
-- `pthread_cond_wait()`
+- `pthread_cond_broadcast()`，广播所有线程
+- `pthread_cond_signal()`，通知任一线程
+- `pthread_cond_wait()`，**等通知+抢锁**
 - `pthread_cond_timewait()`
+### 信号量
+**通过互斥量与条件变量的配合我们可以实现信号量。信号量像是一个激活函数，当这个变量超过阈值时，将会触发条件变量给互斥量上锁**
+- **互斥量可以看作二进制信号量** 
 ## 4. 线程属性
 - 线程同步的属性
 ## 5. 重入

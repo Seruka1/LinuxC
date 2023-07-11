@@ -21,8 +21,8 @@ struct mytbf_st
     int token;
     int pos;
     pthread_mutex_t mut;
+    pthread_cond_t cond;
 };
-
 
 static int get_free_pos_unlocked()
 {
@@ -51,6 +51,8 @@ static void* thr_alrm(void* p)
             {
                 job[i]->token=job[i]->burst;
             }
+            pthread_cond_broadcast(&job[i]->cond);
+
             pthread_mutex_unlock(&job[i]->mut);
         }
         pthread_mutex_unlock(&mut_job);
@@ -97,6 +99,7 @@ mytbf_t *mytbf_init(int cps, int burst)
     me->token = 0;
     me->csp = cps;
     me->burst = burst;
+    pthread_cond_init(&me->cond,NULL);
     pthread_mutex_init(&me->mut,NULL);
 
     pthread_mutex_lock(&mut_job);
@@ -127,14 +130,13 @@ int mytbf_fetchtoken(mytbf_t *ptr, int size)
     pthread_mutex_lock(&tbf->mut);
     while (tbf->token <= 0)
     {
-        pthread_mutex_unlock(&tbf->mut);
-        sched_yield();
-        pthread_mutex_lock(&tbf->mut);
+        pthread_cond_wait(&tbf->cond, &tbf->mut);
     }
 
     int n = tbf->token < size ? tbf->token : size;
 
     tbf->token -= n;
+
     pthread_mutex_unlock(&tbf->mut);
     // 用户获取了 n 个token
     return n;
@@ -153,6 +155,7 @@ int mytbf_returntoken(mytbf_t *ptr, int size)
     tbf->token += size;
     if (tbf->token > tbf->burst)
         tbf->token = tbf->burst;
+    pthread_cond_broadcast(&tbf->cond);
     pthread_mutex_unlock(&tbf->mut);
     return size;
 }
@@ -164,6 +167,7 @@ int mytbf_destroy(mytbf_t *ptr)
     job[tbf->pos] = NULL;
     pthread_mutex_unlock(&mut_job);
     pthread_mutex_destroy(&tbf->mut);
+    pthread_cond_destroy(&tbf->cond);
     free(tbf);
     return 0;
 }
