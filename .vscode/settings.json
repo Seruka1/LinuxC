@@ -4,8 +4,6 @@
     "unistd.h": "c",
     "stat.h": "c",
     "types.h": "c",
-    "string.h": "c",
-    "pthread.h": "c",
-    "mysem.h": "c"
+    "string.h": "c"
   }
 }
