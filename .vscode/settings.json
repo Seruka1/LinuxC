@@ -5,6 +5,7 @@
     "stat.h": "c",
     "types.h": "c",
     "string.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "errno.h": "c"
   }
 }
