@@ -36,4 +36,14 @@ mpg123 musicpipe
 - `msgget()`
 - `msgop()`
 - `msgctl()`
+### 信号量数组 Semaphore Arrays
+**多个资源的请求**
+- semget()
+- semop()
+- semctl()
+### 共享内存 Shared Memory
+- shmget()
+- shmop()
+- shmctl()
+
   

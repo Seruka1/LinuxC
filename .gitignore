@@ -5,4 +5,4 @@ APUE/Process/bin/
 APUE/Thread/bin/
 APUE/AdvancedIO/bin/
 APUE/IPC/MSG/bin
-APUE/IPC/bin/usepipe
+APUE/IPC/bin
