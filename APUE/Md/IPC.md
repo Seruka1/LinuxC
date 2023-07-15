@@ -24,7 +24,9 @@ mpg123 musicpipe
 ## XSI(SysV)
 **共享内存、消息队列、信号量数组**  
 主动端：先发包的一方
-被动端：先收包的一方（先运行）
+被动端：先收包的一方（先运行）  
+有血缘关系的进程：不需要获取key  
+无血缘关系的进程：需要提供path获取唯一的key值
 - `ipcs`命令查看IPC
 - `ipcrm`删除IPC
 - ftok() **使得通信双方拿到同一个机制**
@@ -38,12 +40,12 @@ mpg123 musicpipe
 - `msgctl()`
 ### 信号量数组 Semaphore Arrays
 **多个资源的请求**
-- semget()
-- semop()
-- semctl()
+- `semget()`
+- `semop()`
+- `semctl()`
 ### 共享内存 Shared Memory
-- shmget()
-- shmop()
-- shmctl()
-
+- `shmget()`
+- `shmop()`
+- `shmctl()`
+- `shmdt()`解除映射
   
