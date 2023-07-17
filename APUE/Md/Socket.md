@@ -89,3 +89,14 @@ sockaddr -> struct socketaddr_in
 - `rcvfrom()`
 - `inet_pton()`
 - `inet_ntop()`
+### 多点通讯
+#### 广播(全网广播，子网广播)
+- getsockopt()
+- setsockopt()
+#### 多播/组播
+相较广播更灵活
+`224.0.0.1` **这个地址表示所有支持多播的节点默认都存在于这个组中且无法离开**  
+
+#### UDP需要特别注意的问题
+**丢包是由阻塞造成的(网络被路由器或其他网络节点按照某种算法移除),而不是ttl**
+- TTL time to live  数据包跳转的路由数

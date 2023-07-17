@@ -6,3 +6,5 @@ APUE/Thread/bin/
 APUE/AdvancedIO/bin/
 APUE/IPC/MSG/bin
 APUE/IPC/bin
+APUE/Socket/UDP/basic/bin
+APUE/Socket/UDP/broadcast/bin
