@@ -8,3 +8,8 @@ APUE/IPC/MSG/bin
 APUE/IPC/bin
 APUE/Socket/UDP/basic/bin
 APUE/Socket/UDP/broadcast/bin
+APUE/Socket/UDP/multicast/bin
+APUE/Socket/TCP/process/bin/cilent
+APUE/Socket/TCP/process/bin/server
+APUE/Socket/TCP/basic/bin/cilent
+APUE/Socket/TCP/basic/bin/server
