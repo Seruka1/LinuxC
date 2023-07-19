@@ -13,3 +13,5 @@ APUE/Socket/TCP/process/bin/cilent
 APUE/Socket/TCP/process/bin/server
 APUE/Socket/TCP/basic/bin/cilent
 APUE/Socket/TCP/basic/bin/server
+APUE/Socket/TCP/pool/bin/cilent
+APUE/Socket/TCP/pool/bin/server

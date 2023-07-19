@@ -182,3 +182,12 @@ Client&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 **服务器采用多进程处理客户端的请求**
 **进程池**
 
+请配合之前写的客户端程序使用
+server端
+~~~ bash
+./server
+~~~
+建议开启3个以上会话启动客户端来模拟高仿问量
+~~~ bash
+while true;do ./client ;sleep 1;done
+~~~
