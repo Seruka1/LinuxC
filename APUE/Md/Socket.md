@@ -178,3 +178,7 @@ Client&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n
 4. 接受连接
 5. 收/发消息
 6. 关闭
+
+**服务器采用多进程处理客户端的请求**
+**进程池**
+
