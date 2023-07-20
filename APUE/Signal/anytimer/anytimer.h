@@ -35,5 +35,10 @@ int at_waitjob(int id);
 
 
 */
+int at_addjob_repeat(int , at_jobfunc_t *, void *);
 
+
+// int at_pausejob();
+
+// int at_resumejob();
 #endif
