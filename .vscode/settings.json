@@ -10,6 +10,10 @@
     "stdlib.h": "c",
     "stdint.h": "c",
     "bitset": "c",
-    "set": "c"
-  }
+    "set": "c",
+    "server_conf.h": "c",
+    "proto.h": "c",
+    "numbers": "c"
+  },
+  //"C_Cpp.dimInactiveRegions": true
 }
