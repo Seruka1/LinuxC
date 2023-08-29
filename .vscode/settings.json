@@ -15,5 +15,6 @@
     "proto.h": "c",
     "numbers": "c"
   },
+  "C_Cpp.errorSquiggles": "enabled",
   //"C_Cpp.dimInactiveRegions": true
 }
