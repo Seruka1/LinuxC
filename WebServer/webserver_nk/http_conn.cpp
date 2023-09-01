@@ -618,5 +618,5 @@ void http_conn::process()
         close_conn();
     }
 
-    modfd(m_epollfd, m_sockfd, EPOLLOUT); // 重置EPOLLONESHOT
+    modfd(m_epollfd, m_sockfd, EPOLLONESHOT); // 重置EPOLLONESHOT
 }
