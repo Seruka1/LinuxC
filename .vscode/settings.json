@@ -13,7 +13,8 @@
     "set": "c",
     "server_conf.h": "c",
     "proto.h": "c",
-    "numbers": "c"
+    "numbers": "c",
+    "iostream": "cpp"
   },
   "C_Cpp.errorSquiggles": "enabled",
   //"C_Cpp.dimInactiveRegions": true

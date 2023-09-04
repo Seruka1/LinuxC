@@ -11,22 +11,40 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
+#include <sys/stat.h>   //文件状态
+#include <sys/mman.h>   //内存映射  把磁盘中的数据映射到当前的内存空间当中
 #include <stdarg.h>
 #include <errno.h>
 #include "locker.h"
-#include <sys/uio.h>
 #include <string.h>
+#include <sys/uio.h>
+#include "log.h"
+#include"lst_timer.h"
 
+
+
+#define COUT_OPEN 1
+const bool ET = true;
+#define TIMESLOT 5     //定时器周期：秒
+
+class sort_timer_lst;
+class util_timer;
+
+// 连接的用户数据类
 class http_conn
 {
-public:
+public:                                        // 共享对象，没有线程竞争资源，所以不需要互斥
     static int m_epollfd;                      // 所有socket上的事件都被注册到同一个epoll
     static int m_user_count;                   // 统计用户的数量
+    static int m_request_cnt;                  //接受到的请求次数
+    static sort_timer_lst m_timer_lst; // 定时器链表
+
     static const int READ_BUFFER_SIZE = 2048;  // 读缓冲区的大小
     static const int WRITE_BUFFER_SIZE = 2048; // 写缓冲区大小
     static const int FILENAME_LEN = 200;       // 文件名的最大长度
+
+    util_timer *m_timer;                          //定时器
+
 public:
     // HTTP请求方法，这里只支持GET
     enum METHOD
@@ -143,7 +161,7 @@ private:
     HTTP_CODE parse_headers(char *text);                   // 解析请求头
     HTTP_CODE parse_content(char *text);                   // 解析请求体
     LINE_STATUS parse_line();                              // 解析具体某一行  从状态机
-    char *get_lint() { return m_read_buf + m_start_line; } // 获取一行数据
+    char *get_line() { return m_read_buf + m_start_line; } // 获取一行数据
     HTTP_CODE do_request();                                // 处理具体请求
 
     // 这一组函数被process_write调用以填充HTTP应答。
