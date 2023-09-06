@@ -15,12 +15,4 @@ APUE/Socket/TCP/basic/bin/cilent
 APUE/Socket/TCP/basic/bin/server
 APUE/Socket/TCP/pool/bin/cilent
 APUE/Socket/TCP/pool/bin/server
-exam/first
-exam/first.cpp
-exam/second.cpp
-exam/.cph/.first.cpp_f5b76bfdb6732b0472cd2e40cf36f1e3.prob
-exam/.cph/.second.cpp_667e93fb5c0c45450170e17be70ffa1f.prob
-exam/2.cpp
-exam/meituan-1.cpp
-exam/.cph/.2.cpp_531727369a8629b98e0e12766cb435b1.prob
-exam/.cph/.meituan-1.cpp_5b668e10068207f5723821f6655debf4.prob
+exam
