@@ -12,6 +12,7 @@ Log::Log()
     m_is_async=false;
 }
 
+//是否需要把阻塞队列释放？
 Log::~Log()
 {
     if(m_fp!=NULL)

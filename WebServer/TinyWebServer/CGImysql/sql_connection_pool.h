@@ -46,7 +46,7 @@ public:
     string m_User;   //登陆数据库用户名
     string m_PassWord;  //登陆数据库密码
     string m_DatabaseName;  //访问的数据库
-    int m_closelog;         //日志开关
+    int m_close_log;         //日志开关
 };
 
 //封装连接的获取与释放，实现RAII(资源获取即初始化)，不用手动释放数据库连接
