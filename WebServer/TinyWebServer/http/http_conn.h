@@ -119,8 +119,8 @@ public:
         return &m_address;
     }
     void initmysql_result(connection_pool *connPool);
-    int timer_flag;   //这两个参数还不清楚作用
-    int improv;       //这两个参数还不清楚作用  
+    int timer_flag;   //用于同步并发模型指示读写是否出错
+    int improv;       //用于同步并发模型指示是否读写完成
 
 private:
     int m_sockfd;                      // 该HTTP连接的socket

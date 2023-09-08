@@ -1,15 +1,40 @@
-#ifndef LST_TIMER_H
-#define LST_TIMER_H
+#ifndef LST_TIMER
+#define LST_TIMER
 
-#include<stdio.h>
-#include<time.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/epoll.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
-#include"http_conn.h"
-#include"locker.h"
-#include"log.h"
+#include <assert.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <sys/uio.h>
 
-class http_conn;
-// 定时器类
+#include <time.h>
+#include "../log/log.h"
+
+
+class util_timer;
+
+
+struct client_data
+{
+    sockaddr_in address;     //地址主要是用来记录日志的
+    int sockfd;
+    util_timer *timer;
+};
+
 class util_timer
 {
 public:
@@ -17,7 +42,10 @@ public:
 
 public:
     time_t expire;          //任务超时时间，这里使用绝对时间
-    http_conn *user_data;   //任务数据
+
+    //函数指针，在外部进行函数的定义
+    void (* cb_func)(client_data*);    //回调函数  超时时触发，epoll del，关闭连接，移除定时器
+    client_data *user_data; //任务数据(任务数组是以sockfd为下标的)
     util_timer *prev;       //前一个指针
     util_timer *next;       //后一个指针
 };
@@ -54,5 +82,42 @@ private:
     util_timer *head; // 头节点
     util_timer *tail;  //尾节点
 };
+
+//工具类，帮主线程干脏活
+class Utils
+{
+public:
+    Utils(){}
+    ~Utils(){}
+
+    void init(int timeslot);
+
+    //对文件描述符设置非阻塞
+    int setnonblocking(int fd);
+
+    //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
+    void addfd(int epollfd, int fd, bool one_shot, int TRIGMode);
+
+    //信号处理函数
+    static void sig_handler(int sig);
+
+    //设置信号函数
+    void addsig(int sig, void(handler)(int), bool restart = true);
+
+    //定时处理任务，重新定时以不断触发SIGALRM信号
+    void timer_handler();
+
+    //用于连接不上（如文件描述符到达上限时）时，向客户端发生错误信息
+    void show_error(int connfd, const char *info);
+
+public:
+    static int *u_pipefd;
+    sort_timer_lst m_timer_list;
+    static int u_epollfd;
+    int m_TIMESLOT;
+};
+
+//回调函数
+void cb_func(client_data *user_data);
 
 #endif

@@ -15,7 +15,9 @@
     "proto.h": "c",
     "numbers": "c",
     "iostream": "cpp",
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "limits": "cpp",
+    "type_traits": "cpp"
   },
   "C_Cpp.errorSquiggles": "enabled",
   //"C_Cpp.dimInactiveRegions": true

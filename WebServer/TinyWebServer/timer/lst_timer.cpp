@@ -1,5 +1,5 @@
-#include"lst_timer.h"
-
+#include "lst_timer.h"
+#include "../http/http_conn.h"
 util_timer::util_timer():prev(nullptr),next(nullptr){}
 
 sort_timer_lst::sort_timer_lst():head(nullptr),tail(nullptr){}
@@ -20,10 +20,10 @@ sort_timer_lst::~sort_timer_lst()
 // 将目标定时器添加到链表中
 void sort_timer_lst::add_timer(util_timer *timer)
 {
-    EMlog(LOGLEVEL_DEBUG, "===========adding timer.=============\n");
+
     if (!timer)
     {
-        EMlog(LOGLEVEL_WARN, "===========timer null.=========\n");
+        return;
     }
     if (!head) // 添加的为第一个节点，头结点（尾节点）
     {
@@ -41,17 +41,15 @@ void sort_timer_lst::add_timer(util_timer *timer)
     {
         add_timer(timer, head);
     }
-    EMlog(LOGLEVEL_DEBUG, "===========added timer.==========\n");
 }
 
 /* 当某个任务发生变化时，定时器状态发生变化，需要调整定时器在链表中的位置。这个函数只考虑被调整的定时器的
 超时时间延长的情况，即该定时器需要往链表的尾部移动。 */
 void sort_timer_lst::adjust_timer(util_timer *timer)
 {
-    EMlog(LOGLEVEL_DEBUG, "===========adjusting timer.=============\n");
     if (!timer)
     {
-        EMlog(LOGLEVEL_WARN, "===========timer null.=========\n");
+        return;
     }
     util_timer *tmp = timer->next;
     if(!tmp||timer->expire<tmp->expire)
@@ -73,19 +71,15 @@ void sort_timer_lst::adjust_timer(util_timer *timer)
         timer->next->prev = timer->prev;
         add_timer(timer, timer->next);
     }
-    EMlog(LOGLEVEL_DEBUG, "===========adjusted timer.==========\n");
 }
 
 // 将目标定时器移除
 void sort_timer_lst::del_timer(util_timer *timer)
 {
-    EMlog(LOGLEVEL_DEBUG, "===========deleting timer.===========\n");
     if (!timer)
     {
-        // http_conn::m_timer_lst_locker.unlock();
         return;
     }
-    EMlog(LOGLEVEL_DEBUG, "===========deleted timer.===========\n");
     // 下面这个条件成立表示链表中只有一个定时器，即目标定时器
     if(head==timer&&tail==timer)
     {
@@ -116,7 +110,6 @@ void sort_timer_lst::del_timer(util_timer *timer)
         timer->prev->next = timer->next;
         delete timer;
     }
-    EMlog(LOGLEVEL_DEBUG, "===========deleted timer.===========\n");
 }
 
 // SIGALARM 信号每次触发时在其信号处理函数中执行一次tick()函数，处理到期任务
@@ -126,14 +119,14 @@ void sort_timer_lst::tick()
     {
         return;
     }
-    EMlog(LOGLEVEL_DEBUG, "timer tick.\n");
+
     // 从前往后处理,直到遇到一个尚未到期的定时器
     util_timer *tmp = head;
     time_t cur_time = time(NULL);
     while (tmp && tmp->expire<=cur_time)
     {
         // 调用定时器的回调函数，以执行定时任务，关闭连接
-        tmp->user_data->close_conn();
+        tmp->cb_func(tmp->user_data);
         del_timer(tmp);
         tmp = head;
     }
@@ -168,4 +161,85 @@ void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
         timer->next = nullptr;
         tail = timer;
     }
+}
+
+
+
+//Utils工具类
+int Utils::setnonblocking(int fd)
+{
+    int old_option=fcntl(fd,F_GETFL);
+    int new_option=old_option|O_NONBLOCK;
+    fcntl(fd,F_SETFL,new_option);
+    return old_option;
+}
+
+void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
+{
+    epoll_event event;
+    event.data.fd=fd;
+    if(1==TRIGMode)
+    {
+        event.events=EPOLLIN|EPOLLOUT|EPOLLRDHUP;
+    }
+    else
+    {
+        event.events = EPOLLIN | EPOLLRDHUP;
+    }
+    if(one_shot)
+    {
+        event.events|=EPOLLONESHOT;
+    }
+    epoll_ctl(epollfd,EPOLL_CTL_ADD,fd,&event);
+}
+
+//信号处理函数
+void Utils::sig_handler(int sig)
+{
+    //为保证函数的可重入性，保留原来的errno
+    int save_errno = errno;
+    int msg=sig;
+    send(u_pipefd[1],(char*)&msg,1,0);
+    errno = save_errno;
+}
+
+//设置信号函数
+void Utils::addsig(int sig, void(handler)(int), bool restart = true)
+{
+    struct sigaction sa;
+    memset(&sa,'\0',sizeof(sa));
+    sa.sa_handler=handler;
+    if (restart)
+    {
+        sa.sa_flags |= SA_RESTART;
+    }
+    sigfillset(&sa.sa_mask);
+    assert(sigaction(sig, &sa, NULL) != -1);
+}
+
+//定时处理任务，重新定时以不断触发SIGALRM信号
+void Utils::timer_handler()
+{
+    m_timer_list.tick();
+    alarm(m_TIMESLOT);
+}
+
+//用于连接不上（如文件描述符到达上限时）时，向客户端发生错误信息
+void Utils::show_error(int connfd, const char *info)
+{
+    send(connfd,info,sizeof(info),0);
+    close(connfd);
+}
+
+int *Utils::u_pipefd=0;
+int Utils::u_epollfd=0;
+
+class Utils;
+
+void cb_func(client_data *user_data)
+{
+    epoll_ctl(Utils::u_epollfd,EPOLL_CTL_DEL,user_data->sockfd,0);
+    assert(user_data);
+    close(user_data->sockfd);
+    http_conn::m_user_count--;
 }
