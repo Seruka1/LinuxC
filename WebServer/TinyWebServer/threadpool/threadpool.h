@@ -157,7 +157,7 @@ void threadpool<T>::run()
                 else
                 {
                     request->improv=1;
-                    request->time_flag=1;
+                    request->timer_flag=1;
                 }
             } 
             //写状态
@@ -170,7 +170,7 @@ void threadpool<T>::run()
                 else
                 {
                     request->improv=1;
-                    request->time_flag=1;
+                    request->timer_flag=1;
                 }
             }
         }
