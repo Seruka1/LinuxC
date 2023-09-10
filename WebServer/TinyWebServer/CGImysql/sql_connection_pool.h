@@ -7,8 +7,8 @@
 #include<error.h>
 #include<string>
 #include<iostream>
-#include<../lock/locker.h>
-#include <../log/log.h>
+#include"../lock/locker.h"
+#include "../log/log.h"
 
 using namespace std;
 

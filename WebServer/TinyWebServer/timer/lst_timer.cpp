@@ -166,6 +166,12 @@ void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
 
 
 //Utils工具类
+
+void Utils::init(int timeslot)
+{
+    m_TIMESLOT = timeslot;
+}
+
 int Utils::setnonblocking(int fd)
 {
     int old_option=fcntl(fd,F_GETFL);
@@ -204,7 +210,7 @@ void Utils::sig_handler(int sig)
 }
 
 //设置信号函数
-void Utils::addsig(int sig, void(handler)(int), bool restart = true)
+void Utils::addsig(int sig, void(handler)(int), bool restart)
 {
     struct sigaction sa;
     memset(&sa,'\0',sizeof(sa));

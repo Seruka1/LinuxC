@@ -1,47 +1,46 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
-
-#include<pthread.h>
-#include<list>
-#include "locker.h"
-#include<cstdio>
-#include"../lock/locker.h"
-#include"../CGImysql/sql_connection_pool.h"
+#include <exception>
+#include <pthread.h>
+#include <list>
+#include <cstdio>
+#include "../lock/locker.h"
+#include "../CGImysql/sql_connection_pool.h"
 
 // 线程池类，定义成模板类，为了代码的复用，模板参数T是任务类
-template<typename T>
+template <typename T>
 class threadpool
 {
 private:
-    int m_thread_num;           //线程数量
-    pthread_t *m_threads;       //线程池数组，大小为m_thread_num，声明为指针，后面动态创建数组
-    int m_max_requests;         //请求队列中的最大等待数量
-    std::list<T *> m_workqueue; //请求队列，由threadpool类型的示例进行管理
-    locker m_queue_locker;      //互斥锁
-    sem m_queue_stat;           //信号量（指示任务数）
-    bool m_stop;                //是否结束线程，线程根据该值判断是否要停止
-    connection_pool* m_connPool; //数据库连接池,工作线程执行一个任务的开始取一个连接，结束释放一个连接
-    int m_actor_model;           //模型切换  reactor/proactor  reactor模式读写数据由工作线程处理，主线程只负责监听
+    int m_thread_num;            // 线程数量
+    pthread_t *m_threads;        // 线程池数组，大小为m_thread_num，声明为指针，后面动态创建数组
+    int m_max_requests;          // 请求队列中的最大等待数量
+    std::list<T *> m_workqueue;  // 请求队列，由threadpool类型的示例进行管理
+    locker m_queue_locker;       // 互斥锁
+    sem m_queue_stat;            // 信号量（指示任务数）
+    bool m_stop;                 // 是否结束线程，线程根据该值判断是否要停止
+    connection_pool *m_connPool; // 数据库连接池,工作线程执行一个任务的开始取一个连接，结束释放一个连接
+    int m_actor_model;           // 模型切换  reactor/proactor  reactor模式读写数据由工作线程处理，主线程只负责监听
 
-    static void *worker(void *arg);//静态函数，线程调用，不能访问非静态成员
-    void run();                    //线程池已启动，执行函数
+    static void *worker(void *arg); // 静态函数，线程调用，不能访问非静态成员
+    void run();                     // 线程池已启动，执行函数
 
 public:
-    threadpool(int actor_model, connection_pool *connPool,int thread_num = 8, int max_requests = 10000);
+    threadpool(int actor_model, connection_pool *connPool, int thread_num = 8, int max_requests = 10000);
     ~threadpool();
-    bool append(T *request); // 添加任务的函数（proactor）   
-    bool append(T* request,int state);   //添加任务（reactor 需要指明读写状态）
+    bool append(T *request);            // 添加任务的函数（proactor）
+    bool append(T *request, int state); // 添加任务（reactor 需要指明读写状态）
 };
 
 template <typename T>
-threadpool<T>::threadpool(int actor_model, connection_pool *connPool,int thread_num, int max_requests) : // 构造函数，初始化
-    m_actor_model(actor_model),
-    m_thread_num(thread_num), 
-    m_max_requests(max_requests),
-    m_stop(false), 
-    m_threads(NULL),
-    m_connPool(connPool)
+threadpool<T>::threadpool(int actor_model, connection_pool *connPool, int thread_num, int max_requests) : // 构造函数，初始化
+                                                                                                          m_actor_model(actor_model),
+                                                                                                          m_thread_num(thread_num),
+                                                                                                          m_max_requests(max_requests),
+                                                                                                          m_stop(false),
+                                                                                                          m_threads(NULL),
+                                                                                                          m_connPool(connPool)
 {
     if (thread_num <= 0 || max_requests <= 0)
     {
@@ -56,7 +55,7 @@ threadpool<T>::threadpool(int actor_model, connection_pool *connPool,int thread_
 
     for (int i = 0; i < thread_num; ++i)
     {
-        printf("creating the N0.%d thread.\n", i);
+        //  printf("creating the N0.%d thread.\n", i);
 
         // 创建线程, worker（线程函数） 必须是静态的函数
         if (pthread_create(m_threads + i, NULL, worker, this) != 0)
@@ -82,19 +81,19 @@ threadpool<T>::~threadpool()
     m_stop = true;      // 标记线程结束
 }
 
-template<typename T>
-bool threadpool<T>::append(T *request,int state)
+template <typename T>
+bool threadpool<T>::append(T *request, int state)
 {
-     m_queuelocker.lock();
+    m_queue_locker.lock();
     if (m_workqueue.size() >= m_max_requests)
     {
-        m_queuelocker.unlock();
+        m_queue_locker.unlock();
         return false;
     }
-    request->m_state = state;   //设置读写状态
+    request->m_state = state; // 设置读写状态
     m_workqueue.push_back(request);
-    m_queuelocker.unlock();
-    m_queuestat.post();
+    m_queue_locker.unlock();
+    m_queue_stat.post();
     return true;
 }
 
@@ -142,45 +141,44 @@ void threadpool<T>::run()
         {
             continue;
         }
-        //同步模式 工作线程需要处理数据读写
-        if(1==m_actor_model)
+        // 同步模式 工作线程需要处理数据读写
+        if (1 == m_actor_model)
         {
-            //读状态
-            if(0==request->m_state)
+            // 读状态
+            if (0 == request->m_state)
             {
-                if(request->read_once())
+                if (request->read_once())
                 {
-                    request->improv=1;
-                    connectionRAII mysqlcon(&request->mysql,m_connPool);
+                    request->improv = 1;
+                    connectionRAII mysqlcon(&request->mysql, m_connPool);
                     request->process();
                 }
                 else
                 {
-                    request->improv=1;
-                    request->timer_flag=1;
+                    request->improv = 1;
+                    request->timer_flag = 1;
                 }
-            } 
-            //写状态
-            else  
+            }
+            // 写状态
+            else
             {
-                if(request->write())
+                if (request->write())
                 {
-                    request->improv=1;
+                    request->improv = 1;
                 }
                 else
                 {
-                    request->improv=1;
-                    request->timer_flag=1;
+                    request->improv = 1;
+                    request->timer_flag = 1;
                 }
             }
         }
         else
         {
-            connectionRAII mysqlcon(&request->mysql,m_connPool);
-            request->process();  //任务执行
+            connectionRAII mysqlcon(&request->mysql, m_connPool);
+            request->process(); // 任务执行
         }
     }
 }
-
 
 #endif

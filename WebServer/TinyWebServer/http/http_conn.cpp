@@ -3,7 +3,7 @@
 #include <fstream>
 
 // 网站的根目录
-//const char *doc_root = "/home/recall123/LinuxC/WebServer/webserver_nk/resources";
+// const char *doc_root = "/home/recall123/LinuxC/WebServer/webserver_nk/resources";
 // 定义HTTP响应的一些状态信息
 const char *ok_200_title = "OK";
 const char *error_400_title = "Bad Request";
@@ -15,8 +15,6 @@ const char *error_404_form = "The requested file was not found on this server.\n
 const char *error_500_title = "Internal Error";
 const char *error_500_form = "There was an unusual problem serving the requested file.\n";
 
-
-
 int http_conn::m_epollfd = -1; // 类中静态成员需要外部定义
 int http_conn::m_user_count = 0;
 
@@ -26,39 +24,38 @@ map<string, string> users;
 http_conn::http_conn() {}
 http_conn::~http_conn() {}
 
-//每次连接首先把数据库用户数据取到放入map
+// 每次连接首先把数据库用户数据取到放入map
 void http_conn::initmysql_result(connection_pool *connPool)
 {
-    MYSQL* mysql=NULL;
-    connectionRAII mysqlcon(&mysql,connPool);
+    MYSQL *mysql = NULL;
+    connectionRAII mysqlcon(&mysql, connPool);
 
-    //在user表中检索username，passwd数据，浏览器端输入
-    if(mysql_query(mysql,"SELECT username,passwd FROM user"))
+    // 在user表中检索username，passwd数据，浏览器端输入
+    if (mysql_query(mysql, "SELECT username,passwd FROM user"))
     {
         LOG_ERROR("SELECT error:%s\n", mysql_error(mysql));
     }
 
-    //从表中检索完整的结果集
-    MYSQL_RES *result=mysql_store_result(mysql);
+    // 从表中检索完整的结果集
+    MYSQL_RES *result = mysql_store_result(mysql);
 
-    //返回结果集中的列数
-    int num_fields=mysql_num_fields(result);
+    // 返回结果集中的列数
+    int num_fields = mysql_num_fields(result);
 
-    //返回所有字段结构的数组
-    MYSQL_FIELD *fields=mysql_fetch_fields(result);
+    // 返回所有字段结构的数组
+    MYSQL_FIELD *fields = mysql_fetch_fields(result);
 
-    //一行一行获取用户名/密码 （游标操作？）,存入map中
-    while(MYSQL_ROW row=mysql_fetch_row(result))
+    // 一行一行获取用户名/密码 （游标操作？）,存入map中
+    while (MYSQL_ROW row = mysql_fetch_row(result))
     {
         string tmp1(row[0]);
         string tmp2(row[1]);
-        users[tmp1]=tmp2;
+        users[tmp1] = tmp2;
     }
-}   
-
+}
 
 // 设置文件描述符非阻塞 返回先前的状态
-int  set_nonblocking(int fd)
+int set_nonblocking(int fd)
 {
     int old_flag = fcntl(fd, F_GETFL);
     int new_flag = old_flag | O_NONBLOCK;
@@ -71,7 +68,7 @@ void addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
 {
     epoll_event event;
     event.data.fd = fd;
-    if (TRIGMode==1)
+    if (TRIGMode == 1)
     {
         // EPOLLRDHUP是半关闭连接事件，如果一个连接的对端关闭了写端（即半关闭连接），内核会向应用程序发送EPOLLRDHUP事件通知。
         // 对所有fd设置边沿触发，但是listen_fd不需要，可以另行判断处理
@@ -98,25 +95,25 @@ void removefd(int epollfd, int fd)
 }
 
 // 修改epoll中的文件描述符,重置socket上EPOLLONESHOT事件，以确保下一次可读时EPOLLIN事件能被触发
-void modfd(int epollfd, int fd, int ev,int TRIGMode)
+void modfd(int epollfd, int fd, int ev, int TRIGMode)
 {
     epoll_event event;
     event.data.fd = fd;
-    
-    if(1==TRIGMode)
+
+    if (1 == TRIGMode)
     {
-        event.events = ev |EPOLLET| EPOLLONESHOT | EPOLLRDHUP;
+        event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
     }
     else
     {
         event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
     }
-    
+
     epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
 }
 
 // 初始化连接,外部调用初始化套接字地址
-void http_conn::init(int sockfd, const sockaddr_in &addr,char *root,int TRIGMode, int close_log, string user, string passwd, string sqlname)
+void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode, int close_log, string user, string passwd, string sqlname)
 {
     m_sockfd = sockfd;
     m_address = addr;
@@ -128,7 +125,7 @@ void http_conn::init(int sockfd, const sockaddr_in &addr,char *root,int TRIGMode
     addfd(m_epollfd, m_sockfd, true, m_TRIGMode);
     m_user_count++;
 
-    //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
+    // 当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
     doc_root = root;
     m_TRIGMode = TRIGMode;
     m_close_log = close_log;
@@ -140,10 +137,10 @@ void http_conn::init(int sockfd, const sockaddr_in &addr,char *root,int TRIGMode
 }
 
 // 初始化新接受的连接
-//check_state默认为分析请求行状态
+// check_state默认为分析请求行状态
 void http_conn::init()
 {
-    mysql=NULL;
+    mysql = NULL;
     m_check_state = CHECK_STATE_REQUESTLINE; // 初始化状态为正在解析请求首行
     m_checked_index = 0;                     // 初始化解析字符索引
     m_start_line = 0;                        // 行的起始位置
@@ -173,9 +170,9 @@ void http_conn::init()
 // 关闭连接
 void http_conn::close_conn(bool real_close)
 {
-    if (real_close&&m_sockfd != -1)
+    if (real_close && m_sockfd != -1)
     {
-        printf("close %d\n",m_sockfd);
+        printf("close %d\n", m_sockfd);
         m_user_count--;
         removefd(m_epollfd, m_sockfd);
         m_sockfd = -1;
@@ -183,7 +180,7 @@ void http_conn::close_conn(bool real_close)
 }
 
 // 循环读取客户数据，直到无数据可读或者对方关闭连接
-//非阻塞ET工作模式下，需要一次性将数据读完，因为eoll只通知一次
+// 非阻塞ET工作模式下，需要一次性将数据读完，因为eoll只通知一次
 bool http_conn::read_once()
 {
 
@@ -196,12 +193,12 @@ bool http_conn::read_once()
     // 读取到的字节
     int bytes_read = 0;
 
-    //LT读取数据  没读完会再次通知的
-    if(0==m_TRIGMode)
+    // LT读取数据  没读完会再次通知的
+    if (0 == m_TRIGMode)
     {
-        bytes_read=recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
-        m_read_idx+=bytes_read;
-        if(bytes_read<=0)
+        bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
+        m_read_idx += bytes_read;
+        if (bytes_read <= 0)
         {
             return false;
         }
@@ -233,7 +230,6 @@ bool http_conn::read_once()
         }
         return true;
     }
-
 }
 
 // 主状态机：解析请求
@@ -244,7 +240,7 @@ http_conn::HTTP_CODE http_conn::process_read()
     char *text = 0;
 
     // 解析到了头部/请求行一行完整的数据，或者解析到了请求体一行完整的数据（特判请求体是因为其结尾不一样 不是\r\n）
-    while ((m_check_state == CHECK_STATE_CONTENT && line_state == LINE_OK) || ((line_state = parse_line()) == LINE_OK)) 
+    while ((m_check_state == CHECK_STATE_CONTENT && line_state == LINE_OK) || ((line_state = parse_line()) == LINE_OK))
     {
         // 解析到了一行完整的数据/请求体
         // char* get_line(){return m_rd_buf + m_line_start;}前面的parse_one_line给我们设置了'\0'，或者头部和请求行给我们设置好了换行
@@ -285,7 +281,7 @@ http_conn::HTTP_CODE http_conn::process_read()
             {
                 return do_request();
             }
-            line_state = LINE_OPEN; //请求体还没读完，说明数据没接收完全，利用LINE_OPEN跳出循环
+            line_state = LINE_OPEN; // 请求体还没读完，说明数据没接收完全，利用LINE_OPEN跳出循环
             break;
         }
         default:
@@ -308,20 +304,20 @@ http_conn::HTTP_CODE http_conn::do_request()
     // "/home/cyf/Linux/webserver/resources"
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
-    //根据m_url /后的第一个字符判断请求资源
+    // 根据m_url /后的第一个字符判断请求资源
     const char *p = strrchr(m_url, '/');
-    //处理cgi  注册登录验证 
-    if(cgi==1&& (*(p + 1) == '2' || *(p + 1) == '3'))
+    // 处理cgi  注册登录验证
+    if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
     {
-        //这里是不是有问题？
+        // 这里是不是有问题？
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/");
         strcat(m_url_real, m_url + 2);
         strncpy(m_real_file + len, m_url_real, FILENAME_LEN - len - 1);
         free(m_url_real);
 
-        //将用户名和密码提取出来
-        //user=123&passwd=123
+        // 将用户名和密码提取出来
+        // user=123&passwd=123
         char name[100], password[100];
         int i;
         for (i = 5; m_string[i] != '&'; ++i)
@@ -336,10 +332,10 @@ http_conn::HTTP_CODE http_conn::do_request()
         }
         password[j] = '\0';
 
-        //第一个字符为2表示登录，3表示注册
+        // 第一个字符为2表示登录，3表示注册
         if (*(p + 1) == '3')
         {
-            //注册的话  如果成功就需要往数据库中添加数据
+            // 注册的话  如果成功就需要往数据库中添加数据
             char *sql_insert = (char *)malloc(sizeof(char) * 200);
             strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
             strcat(sql_insert, "'");
@@ -347,34 +343,34 @@ http_conn::HTTP_CODE http_conn::do_request()
             strcat(sql_insert, "', '");
             strcat(sql_insert, password);
             strcat(sql_insert, "')");
-            if(users.find(name)==users.end())
+            if (users.find(name) == users.end())
             {
-                //更新数据库
+                // 更新数据库
                 m_lock.lock();
                 int res = mysql_query(mysql, sql_insert);
                 users.insert(pair<string, string>(name, password));
                 m_lock.unlock();
 
-                if(!res)
+                if (!res)
                 {
-                    //注册成功
-                    strcpy(m_url, "/log.html");    
+                    // 注册成功
+                    strcpy(m_url, "/log.html");
                 }
                 else
                 {
-                    //注册失败
+                    // 注册失败
                     strcpy(m_url, "/registerError.html");
                 }
             }
             else
             {
-                //该用户已经注册过了
+                // 该用户已经注册过了
                 strcpy(m_url, "/registerError.html");
             }
         }
         else //*(p + 1) == '2'   登录，直接判断map中有没有数据
         {
-            if(users.find(name)==users.end()&&users[name]==password)
+            if (users.find(name) != users.end() && users[name] == password)
             {
                 strcpy(m_url, "/welcome.html");
             }
@@ -385,17 +381,17 @@ http_conn::HTTP_CODE http_conn::do_request()
         }
     }
 
-    if(*(p+1)=='0')
+    if (*(p + 1) == '0')
     {
-        //获取注册页面
-        char *m_url_real=(char*)malloc(sizeof(char)*200);
-        strcpy(m_url_real,"/register.html");
-        strncpy(m_real_file+len,m_url_real,strlen(m_url_real));
+        // 获取注册页面
+        char *m_url_real = (char *)malloc(sizeof(char) * 200);
+        strcpy(m_url_real, "/register.html");
+        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
         free(m_url_real);
     }
     else if (*(p + 1) == '1')
     {
-        //获取登录页面
+        // 获取登录页面
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/log.html");
         strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
@@ -404,7 +400,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     }
     else if (*(p + 1) == '5')
     {
-        //获取图片
+        // 获取图片
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/picture.html");
         strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
@@ -413,7 +409,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     }
     else if (*(p + 1) == '6')
     {
-        //获取视频
+        // 获取视频
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/video.html");
         strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
@@ -422,7 +418,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     }
     else if (*(p + 1) == '7')
     {
-        //获取点赞页面
+        // 获取点赞页面
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/fans.html");
         strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
@@ -433,7 +429,6 @@ http_conn::HTTP_CODE http_conn::do_request()
     {
         strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
     }
-
 
     // 获取m_real_file文件的相关的状态信息，-1失败，0成功
     if (stat(m_real_file, &m_file_stat) < 0)
@@ -496,10 +491,10 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     {
         m_method = GET;
     }
-    else if(strcasecmp(method, "POST") == 0)
+    else if (strcasecmp(method, "POST") == 0)
     {
-        cgi=1;
-        m_method=POST;
+        cgi = 1;
+        m_method = POST;
     }
     else
     {
@@ -513,11 +508,12 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     }
     *m_version++ = '\0'; // /index.html\0HTTP/1.1，此时m_url到\0结束，表示 /index.html\0      // HTTP/1.1
     m_version += strspn(m_version, " \t");
-    //workbench用的是HTTP/1.0
-    // if (strcasecmp(m_version, "HTTP/1.1") != 0)
-    // {
-    //     return BAD_REQUEST;
-    // }
+
+    // 这里注释的话，接收的信息太多了 qps下降
+    if (strcasecmp(m_version, "HTTP/1.1") != 0)
+    {
+        return BAD_REQUEST;
+    }
 
     // 可能出现带地址的格式 http://192.168.15.128.1:9999/index.html
     if (strncasecmp(m_url, "http://", 7) == 0)
@@ -525,7 +521,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
         m_url += 7;                 // 192.168.15.128.1:9999/index.html
         m_url = strchr(m_url, '/'); // /index.html
     }
-    else if(strncasecmp(m_url, "https://", 8) == 0)
+    else if (strncasecmp(m_url, "https://", 8) == 0)
     {
         m_url += 8;
         m_url = strchr(m_url, '/');
@@ -534,10 +530,10 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     {
         return BAD_REQUEST;
     }
-    //当url为/时，显示判断页面
-    if(strlen(m_url)==1)
+    // 当url为/时，显示判断页面
+    if (strlen(m_url) == 1)
     {
-        strcat(m_url,"judge.html");
+        strcat(m_url, "judge.html");
     }
     m_check_state = CHECK_STATE_HEADER; // 主状态机状态改变为检查请求头部
     return NO_REQUEST;                  // 请求尚未解析完成
@@ -589,7 +585,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text)
     }
     else
     {
-        LOG_INFO( "oop! unknow header: %s\n", text);
+        LOG_INFO("oop! unknow header: %s\n", text);
     }
     return NO_REQUEST;
 }
@@ -600,7 +596,7 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text)
     if (m_read_idx >= (m_content_len + m_checked_index)) // 读到的数据长度 大于 已解析长度（请求行+头部+空行）+请求体长度
     {                                                    // 数据被完整读取
         text[m_content_len] = '\0';                      // 标志结束
-        m_string=text;
+        m_string = text;
         return GET_REQUEST;
     }
     return NO_REQUEST;
@@ -647,11 +643,10 @@ bool http_conn::write()
 {
     int temp = 0;
 
-
     if (bytes_to_send == 0)
     {
         // 将要发送的字节为0，这一次响应结束。重新入队，设置oneshot
-        modfd(m_epollfd, m_sockfd, EPOLLIN,m_TRIGMode);
+        modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
         init();
         return true;
     }
@@ -671,7 +666,7 @@ bool http_conn::write()
             // 服务器无法立即接收到同一客户的下一个请求，但可以保证连接的完整性。
             if (errno == EAGAIN)
             {
-                modfd(m_epollfd, m_sockfd, EPOLLOUT,m_TRIGMode);
+                modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
                 return true;
             }
             unmap(); // 释放内存映射m_file_a**ress空间
@@ -697,7 +692,7 @@ bool http_conn::write()
         {
             // 没有数据要发送了
             unmap();
-            modfd(m_epollfd, m_sockfd, EPOLLIN,m_TRIGMode); // 重新加入epoll队列，设置读事件监听
+            modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode); // 重新加入epoll队列，设置读事件监听
 
             if (m_linger)
             { // 如果m_linger为true，保持连接，我们重新初始化
@@ -730,7 +725,7 @@ bool http_conn::add_response(const char *format, ...)
     m_write_idx += len; // 更新下次写数据的起始位置
     va_end(arg_list);
 
-    //这里日志记录有没有问题？
+    // 这里日志记录有没有问题？
     LOG_INFO("request:%s", m_write_buf);
     return true;
     /*
@@ -757,7 +752,7 @@ bool http_conn::add_status_line(int status, const char *title)
 // 添加了一些必要的响应头部
 bool http_conn::add_headers(int content_len)
 {
-    return add_content_length(content_len)&&add_content_type()&&add_blank_line();
+    return add_content_length(content_len) && add_content_type() && add_blank_line();
 }
 
 bool http_conn::add_content_length(int content_len)
@@ -834,7 +829,7 @@ bool http_conn::process_write(HTTP_CODE ret)
         }
         else
         {
-            //当文件为空的时候返回一个空界面
+            // 当文件为空的时候返回一个空界面
             const char *ok_string = "<html><body></body></html>";
             add_headers(strlen(ok_string));
             if (!add_content(ok_string))
@@ -849,7 +844,7 @@ bool http_conn::process_write(HTTP_CODE ret)
     m_iv[0].iov_base = m_write_buf;
     m_iv[0].iov_len = m_write_idx;
     m_iv_count = 1;
-    bytes_to_send=m_write_idx;
+    bytes_to_send = m_write_idx;
     return true;
 }
 
@@ -860,7 +855,7 @@ void http_conn::process()
     HTTP_CODE read_ret = process_read();
     if (read_ret == NO_REQUEST)
     {
-        modfd(m_epollfd, m_sockfd, EPOLLIN,m_TRIGMode);
+        modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
         return;
     }
 
@@ -872,5 +867,5 @@ void http_conn::process()
         return;
     }
 
-    modfd(m_epollfd, m_sockfd, EPOLLOUT,m_TRIGMode); // 重置EPOLLONESHOT
+    modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode); // 重置EPOLLONESHOT
 }

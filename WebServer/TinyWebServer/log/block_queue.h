@@ -177,7 +177,7 @@ public:
         {
             t.tv_sec=now.tv_sec+ms_timeout/1000;
             t.tv_nsec=ms_timeout%1000*1000;
-            if(!m_cond.wait(m_mutex.get(),t))
+            if(!m_cond.timewait(m_mutex.get(),t))
             {
                 m_mutex.unlock();
                 return false;

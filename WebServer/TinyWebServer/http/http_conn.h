@@ -15,7 +15,6 @@
 #include <sys/mman.h>   //内存映射  把磁盘中的数据映射到当前的内存空间当中
 #include <stdarg.h>
 #include <errno.h>
-#include "locker.h"
 #include <string.h>
 #include <sys/uio.h>
 #include <assert.h>
